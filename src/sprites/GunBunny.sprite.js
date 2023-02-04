@@ -130,19 +130,32 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
         // Controls
         if (control.right) {
-            this.setVelocityX(300);
+            this.setVelocityX(500);
         } else if (control.left) {
-            this.setVelocityX(-300);
+            this.setVelocityX(-500);
         } else {
             this.setVelocityX(0);
         }
 
         // If player is jumping
         if (control.jump && this.body.blocked.down) {
-            this.setVelocityY(-400);
+            this.setVelocityY(-100);
+            this.framesLeft = 60;
+        } else if (control.jump && this.state === 'jumping' && this.framesLeft > 0) {
+            this.setVelocityY(-500);
+            this.framesLeft--;
+        } else if (!control.jump && this.state === 'jumping') {
+            this.framesLeft = 0;
         }
 
-        if (control.shoot || control.rightStick && !this.isShooting) {
+        // Determine direction of sprite based on velocity.
+        if (this.body.velocity.x >= 0) {
+            this.flipX = true;
+        } else if (this.body.velocity.x < 0) {
+            this.flipX = false;
+        }
+
+        if (control.rightStick && !this.isShooting) {
             this.isShooting = true;
 
             this.sounds.buster.play();
@@ -164,14 +177,7 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
             setTimeout(() => {
                 this.isShooting = false;
-            }, 100); 
-        }
-        
-        // Determine direction of sprite based on velocity.
-        if (this.body.velocity.x > 0) {
-            this.flipX = true;
-        } else if (this.body.velocity.x < 0) {
-            this.flipX = false;
+            }, 50); 
         }
 
         // Determine sound to play based on state changes.
