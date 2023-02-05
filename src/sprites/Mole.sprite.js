@@ -137,8 +137,9 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
                 
                 scene.enemyBulletGroup.add(megaBusterShot, true);
 
-                megaBusterShot.scale *= 4;
+                // megaBusterShot.scale *= 4;
                 megaBusterShot.body.allowGravity = false;
+                megaBusterShot.flipX = !this.flipX;
                 megaBusterShot
                     .setVelocityX(this.flipX ? 300 : -300);
 
@@ -147,8 +148,9 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
                 
                 scene.enemyBulletGroup.add(megaBusterShot, true);
 
-                megaBusterShot.scale *= 4;
+                // megaBusterShot.scale *= 4;
                 megaBusterShot.body.allowGravity = false;
+                megaBusterShot.flipX = !this.flipX;
                 megaBusterShot
                     .setVelocity(this.flipX ? 300 : -300, -75);
 
@@ -157,8 +159,9 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
                 
                 scene.enemyBulletGroup.add(megaBusterShot, true);
 
-                megaBusterShot.scale *= 4;
+                // megaBusterShot.scale *= 4;
                 megaBusterShot.body.allowGravity = false;
+                megaBusterShot.flipX = !this.flipX;
                 megaBusterShot
                     .setVelocity(this.flipX ? 300 : -300, 75);
 

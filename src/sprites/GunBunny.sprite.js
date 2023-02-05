@@ -16,54 +16,54 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
         this.anims.create({
             key: 'stand',
-            frames: this.anims.generateFrameNumbers('megaman', { start: 0, end: 1 }),
+            frames: this.anims.generateFrameNumbers('megaman', { start: 0, end: 0 }),
             frameRate: 1,
             repeat: 1
         });
 
         this.anims.create({
             key: 'stand-gun',
-            frames: this.anims.generateFrameNumbers('megaman', { start: 2, end: 2 }),
+            frames: this.anims.generateFrameNumbers('megaman', { start: 0, end: 0 }),
             frameRate: 1,
             repeat: 1
         });
 
         this.anims.create({
             key: 'walk',
-            frames: this.anims.generateFrameNumbers('megaman', { start: 6, end: 9 }),
+            frames: this.anims.generateFrameNumbers('megaman', { start: 0, end: 5 }),
             frameRate: 8,
             repeat: 1
         });
 
         this.anims.create({
             key: 'walk-gun',
-            frames: this.anims.generateFrameNumbers('megaman', { start: 2, end: 5 }),
+            frames: this.anims.generateFrameNumbers('megaman', { start: 0, end: 5 }),
             frameRate: 8,
             repeat: 1
         });
 
         this.anims.create({
             key: 'jump',
-            frames: this.anims.generateFrameNumbers('megaman', { start: 10, end: 10 }),
+            frames: this.anims.generateFrameNumbers('megaman-jump', { start: 0, end: 0 }),
             frameRate: 8,
             repeat: 1
         });
 
         this.anims.create({
             key: 'jump-gun',
-            frames: this.anims.generateFrameNumbers('megaman', { start: 11, end: 11 }),
+            frames: this.anims.generateFrameNumbers('megaman-jump', { start: 0, end: 0 }),
             frameRate: 8,
             repeat: 1
         });
 
         this.anims.create({
             key: 'hurt',
-            frames: this.anims.generateFrameNumbers('megaman', { start: 12, end: 12 }),
+            frames: this.anims.generateFrameNumbers('megaman', { start: 0, end: 0 }),
             frameRate: 8,
             repeat: 1
         });
 
-        this.scale *= 4;
+        this.scale *= 2;
         this.isInvulnerable = false;
 
         this.setCollideWorldBounds(true);
@@ -72,7 +72,7 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
             .setActive(true)
             .setOrigin(0.5, 0.5)
             .setCollideWorldBounds(true)
-            .setSize(22, 22)
+            .setSize(37, 55)
             .refreshBody();
 
         this.controls = {
@@ -155,9 +155,9 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
         // Determine direction of sprite based on velocity.
         if (this.body.velocity.x > 0) {
-            this.flipX = true;
-        } else if (this.body.velocity.x < 0) {
             this.flipX = false;
+        } else if (this.body.velocity.x < 0) {
+            this.flipX = true;
         }
 
         // If player is shooting
@@ -165,24 +165,22 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
             let x = Math.cos(control.rightStick) * 2000;
             let y = Math.sin(control.rightStick) * 2000;
 
-            this.scene.input.gamepad.gamepads[0].vibration = 10;
-
             if (x > 0) {
-                this.flipX = true;
-            } else {
                 this.flipX = false;
+            } else {
+                this.flipX = true;
             }
 
             if (!this.isShooting) {
                 this.isShooting = true;
                 this.sounds.buster.play();
 
-                let megaBusterShot = this.scene.physics.add.sprite(this.x + (this.flipX ? 32 : -32), this.y, 'shot');
+                let megaBusterShot = this.scene.physics.add.sprite(this.x + (!this.flipX ? 32 : -32), this.y, 'shot');
                 this.scene.add.existing(megaBusterShot);
                 
                 this.bulletGroup.add(megaBusterShot, true);
 
-                megaBusterShot.scale *= 4;
+                // megaBusterShot.scale *= 1;
                 megaBusterShot.body.allowGravity = false;
                 megaBusterShot
                     .setVelocity(x, y)
