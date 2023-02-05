@@ -10,6 +10,10 @@ Move: D-Pad
 Jump: L Button
 Shoot: Right Stick in direction you want to shoot
 
+## Credits
+
+The gunbunny sprite used is from a game called "Chelsea and the 7 Devils".  I do not own the rights to this character or sprite.  There are other placeholder sprites from Mega Man which as above, I do not own the rights to.
+
 ## TODO
 
 ### MVP
