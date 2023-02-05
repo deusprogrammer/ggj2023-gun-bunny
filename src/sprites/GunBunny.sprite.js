@@ -64,6 +64,7 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         });
 
         this.scale *= 4;
+        this.isInvulnerable = false;
 
         this.setCollideWorldBounds(true);
 
@@ -107,7 +108,7 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
             control.left        = control.left  || this.scene.input.gamepad.gamepads[0].left;
             control.right       = control.right || this.scene.input.gamepad.gamepads[0].right;
             control.jump        = control.jump  || this.scene.input.gamepad.gamepads[0].R1;
-            control.shoot       = control.shoot || this.scene.input.gamepad.gamepads[0].X;
+            control.shoot       = control.shoot || this.scene.input.gamepad.gamepads[0].rightStick.x !== 0 || this.scene.input.gamepad.gamepads[0].rightStick.y !== 0;
             control.rightStick  = this.scene.input.gamepad.gamepads[0].rightStick.angle();
         }
 
@@ -121,12 +122,16 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         // If player is hurt, controls are locked.
         if (this.state === 'hurt') {
             this.play('hurt', true);
-            this.setVelocityX(this.flipX ? -40 : 40);
+            this.setVelocity(0);
             return;
         }
 
         // Set visible
         this.setAlpha(1);
+
+        if (this.isInvulnerable) {
+            this.setAlpha(0.5);
+        }
 
         // Controls
         if (control.right) {
@@ -149,35 +154,45 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         }
 
         // Determine direction of sprite based on velocity.
-        if (this.body.velocity.x >= 0) {
+        if (this.body.velocity.x > 0) {
             this.flipX = true;
         } else if (this.body.velocity.x < 0) {
             this.flipX = false;
         }
 
-        if (control.rightStick && !this.isShooting) {
-            this.isShooting = true;
+        // If player is shooting
+        if (control.shoot) {
+            let x = Math.cos(control.rightStick) * 2000;
+            let y = Math.sin(control.rightStick) * 2000;
 
-            this.sounds.buster.play();
+            this.scene.input.gamepad.gamepads[0].vibration = 10;
 
-            let megaBusterShot = this.scene.physics.add.sprite(this.x + (this.flipX ? 32 : -32), this.y, 'shot');
-            this.scene.add.existing(megaBusterShot);
-            
-            this.bulletGroup.add(megaBusterShot, true);
+            if (x > 0) {
+                this.flipX = true;
+            } else {
+                this.flipX = false;
+            }
 
-            megaBusterShot.scale *= 4;
-            megaBusterShot.body.allowGravity = false;
-            if (control.rightStick) {
-                let x = Math.cos(control.rightStick) * 2000;
-                let y = Math.sin(control.rightStick) * 2000;
+            if (!this.isShooting) {
+                this.isShooting = true;
+                this.sounds.buster.play();
+
+                let megaBusterShot = this.scene.physics.add.sprite(this.x + (this.flipX ? 32 : -32), this.y, 'shot');
+                this.scene.add.existing(megaBusterShot);
+                
+                this.bulletGroup.add(megaBusterShot, true);
+
+                megaBusterShot.scale *= 4;
+                megaBusterShot.body.allowGravity = false;
                 megaBusterShot
                     .setVelocity(x, y)
                     .setRotation(control.rightStick);
-            }
 
-            setTimeout(() => {
-                this.isShooting = false;
-            }, 50); 
+                setTimeout(() => {
+                    this.isShooting = false;
+                    this.scene.input.gamepad.gamepads[0].vibration = 0;
+                }, 50); 
+                }
         }
 
         // Determine sound to play based on state changes.
@@ -201,4 +216,22 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         })
     }
 
+    onHit(damageSource) {
+        if (this.state === 'hurt' || this.isInvulnerable) {
+            return;
+        }
+
+        console.log("PLAYER HIT");
+        this.state = 'hurt';
+        this.isInvulnerable = true;
+
+        this.sounds.hit.play();
+        
+        setTimeout(() => {
+            this.state = 'standing';
+            setTimeout(() => {
+                this.isInvulnerable = false;
+            }, 1000);
+        }, 200);
+    }
 }
