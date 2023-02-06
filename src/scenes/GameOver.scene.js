@@ -4,24 +4,16 @@ import megaman from '../assets/img/bunny-run.png';
 import megamanJump from '../assets/img/bunny-jump.png';
 import methat from '../assets/img/methat.png';
 
-import carrot from '../assets/img/bullet.png';
-import potato from '../assets/img/potato.png';
+import wood1 from '../assets/img/wood1.png';
+import wood2 from '../assets/img/wood2.png';
+import wood3 from '../assets/img/wood3.png';
+import wood4 from '../assets/img/wood4.png';
+import shot from '../assets/img/bullet.png';
 
 import buster from '../assets/sfx/buster.wav';
-import dink from '../assets/sfx/dink.wav';
-import enemy_hit from '../assets/sfx/enemy_hit.wav';
-import enemy_shoot from '../assets/sfx/enemy_shoot.wav';
-import hit from '../assets/sfx/hit.wav';
-import land from '../assets/sfx/land.wav';
-
-import bgm from '../assets/music/bgm.mp3';
-import levelEndMusic from '../assets/music/level-end.mp3';
-
-import {assetMap} from '../levels/levels';
-
-export default class Preload extends Phaser.Scene {
+export default class GameOver extends Phaser.Scene {
     constructor() {
-        super({ key: 'Preload' });
+        super({ key: 'GameOver' });
     }
 
     init() {}
@@ -31,8 +23,7 @@ export default class Preload extends Phaser.Scene {
         this.load.spritesheet('megaman-jump', megamanJump, { frameWidth: 37, frameHeight: 62 });
         this.load.spritesheet('methat', methat, { frameWidth: 24, frameHeight: 24 });
         
-        this.load.image('shot', carrot);
-        this.load.image('enemy_shot', potato);
+        this.load.image('shot', shot);
 
         this.load.audio('buster', buster);
         this.load.audio('dink', dink);
@@ -42,7 +33,6 @@ export default class Preload extends Phaser.Scene {
         this.load.audio('land', land);
 
         this.load.audio('bgm1', bgm);
-        this.load.audio('level-end', levelEndMusic);
 
         Object.keys(assetMap).forEach(key => {
             let asset = assetMap[key];

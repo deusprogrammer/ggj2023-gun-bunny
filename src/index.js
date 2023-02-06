@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import Game from './scenes/Game.scene';
 import Preload from './scenes/Preload.scene';
+import GameOver from './scenes/GameOver.scene';
 
 const config = {
     type: Phaser.AUTO,
@@ -14,7 +15,7 @@ const config = {
         width: 1920,
         height: 1080
     },
-    scene: [Preload, Game],
+    scene: [Preload, Game, GameOver],
     physics: {
         default: 'arcade',
         arcade: {
@@ -24,5 +25,5 @@ const config = {
     }
 };
 
-const game = new Phaser.Game(config);
+new Phaser.Game(config);
 // game.world.setBounds(0, 0, 5000, window.innerHeight);

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { HealthBar } from '../objects/HealthBar';
 
 export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
@@ -91,6 +92,8 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         }
 
         this.state = 'standing';
+
+        this.healthBar = new HealthBar(scene, this.body.width, 3);
     }
 
     getControllerState() {
@@ -117,6 +120,9 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
     update(...args) {
         super.update();
+
+        this.healthBar.move(this.x, this.y);
+
         let control = this.getControllerState();
 
         // If player is hurt, controls are locked.
@@ -224,6 +230,17 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         this.isInvulnerable = true;
 
         this.sounds.hit.play();
+
+        if (this.healthBar.decrease(1)) {
+            const screenCenterX = this.scene.cameras.main.worldView.x + this.scene.cameras.main.width / 2;
+            const screenCenterY = this.scene.cameras.main.worldView.y + this.scene.cameras.main.height / 2;
+            this.scene.add.text(screenCenterX, screenCenterY, "Game Over", {fontSize: 72}).setOrigin(0.5);
+            this.scene.level.bgm.stop();
+            this.healthBar.bar.destroy();
+            this.disableBody();
+            this.setAlpha(0);
+            return;
+        }
         
         setTimeout(() => {
             this.state = 'standing';

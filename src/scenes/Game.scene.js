@@ -1,5 +1,5 @@
 import GunBunny from "../sprites/GunBunny.sprite";
-import Mole from "../sprites/Mole.sprite";
+import {Level} from "../levels/levels";
 
 export default class Game extends Phaser.Scene {
     constructor() {
@@ -7,28 +7,20 @@ export default class Game extends Phaser.Scene {
     }
       
     create () {
-        this.cameras.main.setBounds(0, 0, 5000, 1080);
-        this.physics.world.setBounds(0, 0, 5000, 1080);
-
+        this.cameras.main.setBackgroundColor(0x87ceeb)
         this.gunBunny = new GunBunny(this, 0, 0);
-        this.mole = new Mole(this, 2000, 0);
+        this.level = new Level(this, 'level1');
+        this.levelEndMusic = this.sound.add('level-end');
+        this.state = "play";
 
-        this.enemyGroup = this.physics.add.group();
+        this.cameras.main.setBounds(0, 0, this.level.width * 64, this.level.height * 64);
+        this.physics.world.setBounds(0, 0, this.level.width * 64, this.level.height * 64);
+
+        this.enemyGroup = this.level.enemies;
         this.enemyBulletGroup = this.physics.add.group();
-        
-        this.enemyGroup.add(new Mole(this, 2000, 0), true);
+        this.platforms = this.level.blocks;
 
         this.cameras.main.startFollow(this.gunBunny);
-
-        this.platforms = this.physics.add.staticGroup();
-
-        for (let i = 0; i < 5000; i++) {
-            let block = this.physics.add.staticSprite(i * 64, 1080, 'wood1');
-            block.scale *= 4;
-            block.setOrigin(0, 1);
-            block.refreshBody();
-            this.platforms.add(block);
-        }
 
         this.physics.add.overlap(this.gunBunny, this.enemyGroup, (obj, obj2) => {
             this.gunBunny.onHit(obj2);
@@ -62,5 +54,18 @@ export default class Game extends Phaser.Scene {
         this.enemyGroup.children.each((enemy) => {
             enemy.update();
         });
+
+        if (this.enemyGroup.countActive(true) === 0 && this.state !== "complete") {
+            this.state = "complete";
+            this.level.bgm.stop();
+            this.levelEndMusic.play();
+            this.cameras.main.stopFollow();
+            const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
+            const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
+            this.add.text(screenCenterX, screenCenterY, "Level Complete", {fontSize: 72}).setOrigin(0.5);
+        }
+
+        if (this.state === "complete" && !this.levelEndMusic.isPlaying) {
+        }
     }
 }

@@ -14,8 +14,8 @@ export class HealthBar {
     }
 
     move (x, y) {
-        this.x = x - 50;
-        this.y = y;
+        this.x = x;
+        this.y = y - 100;;
         this.draw();
     }
 
