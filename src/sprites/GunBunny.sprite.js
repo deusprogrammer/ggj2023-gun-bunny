@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
 import { HealthBar } from '../objects/HealthBar';
 
+const JUMP_FRAMES = 40;
+const INITIAL_JUMP_VEL = -100;
+const EXTENDED_JUMP_VEL = -700;
+
 export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
         super(scene, x, y, 'megaman');
@@ -108,8 +112,8 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         if (this.isGamepadConnected) {
             control.up          = control.up    || this.scene.input.gamepad.gamepads[0].up;
             control.down        = control.down  || this.scene.input.gamepad.gamepads[0].down;
-            control.left        = control.left  || this.scene.input.gamepad.gamepads[0].left;
-            control.right       = control.right || this.scene.input.gamepad.gamepads[0].right;
+            control.left        = control.left  || this.scene.input.gamepad.gamepads[0].leftStick.x < 0 || this.scene.input.gamepad.gamepads[0].left;
+            control.right       = control.right || this.scene.input.gamepad.gamepads[0].leftStick.x > 0 || this.scene.input.gamepad.gamepads[0].right;;
             control.jump        = control.jump  || this.scene.input.gamepad.gamepads[0].R1;
             control.shoot       = control.shoot || this.scene.input.gamepad.gamepads[0].rightStick.x !== 0 || this.scene.input.gamepad.gamepads[0].rightStick.y !== 0;
             control.rightStick  = this.scene.input.gamepad.gamepads[0].rightStick.angle();
@@ -150,10 +154,10 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
         // If player is jumping
         if (control.jump && this.body.blocked.down) {
-            this.setVelocityY(-100);
-            this.framesLeft = 60;
+            this.setVelocityY(INITIAL_JUMP_VEL);
+            this.framesLeft = JUMP_FRAMES;
         } else if (control.jump && this.state === 'jumping' && this.framesLeft > 0) {
-            this.setVelocityY(-500);
+            this.setVelocityY(EXTENDED_JUMP_VEL);
             this.framesLeft--;
         } else if (!control.jump && this.state === 'jumping') {
             this.framesLeft = 0;
@@ -216,6 +220,10 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         }
 
         this.bulletGroup.children.each((child) => {
+            if (!this.scene.cameras.main.worldView.contains(child.x, child.y)) {
+                child.destroy();
+                return;
+            }
             child.update();
         })
     }
@@ -225,7 +233,6 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
             return;
         }
 
-        console.log("PLAYER HIT");
         this.state = 'hurt';
         this.isInvulnerable = true;
 

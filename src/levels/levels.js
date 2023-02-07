@@ -77,6 +77,7 @@ export class Level extends Phaser.GameObjects.GameObject {
         this.width = 0;
 
         this.bgm = this.scene.sound.add(this.levelConfig.bgm);
+        this.bgm.setLoop(true);
 
         this.bgm.play('');
 

@@ -10,8 +10,6 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
 
         this.scale *= 6;
 
-        this.bulletGroup = this.scene.physics.add.group();
-
         this.sounds = {};
         this.sounds.dink = this.scene.sound.add('dink', {loop: false, volume: 1});
         this.sounds.enemyHit = this.scene.sound.add('enemy_hit', {loop: false, volume: 1});
@@ -80,9 +78,8 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
         });
 
         this.state = 'guard';
-        this.hp = 30;
 
-        this.healthBar = new HealthBar(scene, this.body.width, 30);
+        this.healthBar = new HealthBar(scene, this.body.width, 10);
     }
 
     onCollision() {
@@ -101,7 +98,7 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
     onHit(weapon) {
         if (this.state === 'guard') {
             this.sounds.dink.play();
-            weapon.setVelocity(-weapon.body.velocity.x, -Math.abs(weapon.body.velocity.x));
+            weapon.destroy();
             return;
         }
 
@@ -120,15 +117,13 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
     update() {
         super.update();
 
-        if (!this.active) {
+        this.healthBar.move(this.x, this.y);
+
+        if (!this.scene.cameras.main.worldView.contains(this.x, this.y) || !this.active) {
             return;
         }
 
-        const scene = this.scene;
-
-        this.healthBar.move(this.x, this.y);
-
-        if (this.scene.game.loop.frame % 500 === 0 && this.body.touching.down && this.state === 'guard') {
+        if (this.scene.game.loop.frame % (Math.floor(Math.random() * 200)) === 0 && this.body.touching.down && this.state === 'guard') {
             this.state = 'standing';
 
             // Make him start walking shortly after standing up
@@ -142,7 +137,7 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
                 let megaBusterShot = this.scene.physics.add.sprite(this.x + (this.flipX ? 32 : -32), this.y, 'enemy_shot');
                 this.scene.add.existing(megaBusterShot);
                 
-                scene.enemyBulletGroup.add(megaBusterShot, true);
+                this.scene.enemyBulletGroup.add(megaBusterShot, true);
 
                 // megaBusterShot.scale *= 4;
                 megaBusterShot.body.allowGravity = false;
@@ -154,7 +149,7 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
                 megaBusterShot = this.scene.physics.add.sprite(this.x + (this.flipX ? 32 : -32), this.y, 'enemy_shot');
                 this.scene.add.existing(megaBusterShot);
                 
-                scene.enemyBulletGroup.add(megaBusterShot, true);
+                this.scene.enemyBulletGroup.add(megaBusterShot, true);
 
                 // megaBusterShot.scale *= 4;
                 megaBusterShot.body.allowGravity = false;
@@ -163,34 +158,10 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
                     .setAngularAcceleration(300)
                     .setVelocity(this.flipX ? 300 : -300, -75);
 
-                // megaBusterShot = this.scene.physics.add.sprite(this.x + (this.flipX ? 32 : -32), this.y, 'enemy_shot');
-                // this.scene.add.existing(megaBusterShot);
-                
-                // scene.enemyBulletGroup.add(megaBusterShot, true);
-
-                // // megaBusterShot.scale *= 4;
-                // megaBusterShot.body.allowGravity = false;
-                // megaBusterShot.flipX = !this.flipX;
-                // megaBusterShot
-                //     .setAngularAcceleration(300)
-                //     .setVelocity(this.flipX ? 300 : -300, -32);
-
-                // megaBusterShot = this.scene.physics.add.sprite(this.x + (this.flipX ? 32 : -32), this.y, 'enemy_shot');
-                // this.scene.add.existing(megaBusterShot);
-                
-                // scene.enemyBulletGroup.add(megaBusterShot, true);
-
-                // // megaBusterShot.scale *= 4;
-                // megaBusterShot.body.allowGravity = false;
-                // megaBusterShot.flipX = !this.flipX;
-                // megaBusterShot
-                //     .setAngularAcceleration(300)
-                //     .setVelocity(this.flipX ? 300 : -300, 32);
-
                 megaBusterShot = this.scene.physics.add.sprite(this.x + (this.flipX ? 32 : -32), this.y, 'enemy_shot');
                 this.scene.add.existing(megaBusterShot);
                 
-                scene.enemyBulletGroup.add(megaBusterShot, true);
+                this.scene.enemyBulletGroup.add(megaBusterShot, true);
 
                 // megaBusterShot.scale *= 4;
                 megaBusterShot.body.allowGravity = false;
@@ -211,6 +182,13 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
                 this.state = 'guard';
                 this.setVelocityX(0);
             }, 3000);
+
+            this.scene.enemyBulletGroup.children.each((child) => {
+                if (!this.scene.cameras.main.worldView.contains(child.x, child.y)) {
+                    child.destroy();
+                }
+                child.update();
+            });
         }
 
         // Determine direction of sprite based on velocity.
