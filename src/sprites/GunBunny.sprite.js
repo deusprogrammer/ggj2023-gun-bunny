@@ -4,9 +4,11 @@ const JUMP_FRAMES = 40;
 const INITIAL_JUMP_VEL = -50;
 const EXTENDED_JUMP_VEL = -700;
 
-const DASH_SPEED = 800;
-const DASH_FRAMES = 60;
+const DASH_SPEED = 2000;
+const DASH_FRAMES = 15;
 const DASH_COOLDOWN = 360;
+
+const STOMP_SPEED = 2000;
 
 export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
@@ -143,6 +145,7 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
         if (this.dashFrames > 0) {
             this.dashFrames--;
+            this.play('jump');
             return;
         }
 
@@ -185,7 +188,7 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
             this.body.setAllowGravity(false);
         } else if (control.slam && this.state === 'jumping') {
             this.state = 'stomping';
-            this.setVelocityY(2000);
+            this.setVelocityY(STOMP_SPEED);
         } else if (control.jump && this.body.blocked.down) {
             this.state = 'jumping';
             this.setVelocityY(INITIAL_JUMP_VEL);
