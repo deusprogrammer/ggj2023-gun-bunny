@@ -84,7 +84,7 @@ export let assetMap = {
     "$3": {
         name: "$text3",
         type: "text",
-        text: "Press L2 to dash."
+        text: "Press L2 to dash.  Dashing makes you invulnerable."
     }
 }
 
