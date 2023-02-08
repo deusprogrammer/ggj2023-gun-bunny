@@ -7,7 +7,7 @@ export default class Game extends Phaser.Scene {
     }
       
     create () {
-        this.cameras.main.setBackgroundColor(0x87ceeb)
+        this.cameras.main.setBackgroundColor(0x87ceeb);
         this.gunBunny = new GunBunny(this, 0, 0);
         this.level = new Level(this, 'level1');
         this.levelEndMusic = this.sound.add('level-end');
@@ -40,13 +40,15 @@ export default class Game extends Phaser.Scene {
             enemy.onCollision();
         });
 
-        this.physics.add.collider(this.gunBunny, this.platforms);
+        this.physics.add.collider(this.gunBunny, [this.platforms, this.enemyGroup]);
 
         this.physics.world.on('worldbounds', (body) => {
             if (this.player.bulletGroup.contains(body.gameObject)) {
                 body.destroy();
             }
         });
+
+        this.overlay = this.scene.launch('UIOverlay', {player: this.gunBunny, enemyGroup: this.enemyGroup});
     }
 
     update () {
@@ -62,7 +64,7 @@ export default class Game extends Phaser.Scene {
             this.cameras.main.stopFollow();
             const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
             const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
-            this.add.text(screenCenterX, screenCenterY, "Level Complete", {fontSize: 72}).setOrigin(0.5);
+            this.add.text(screenCenterX, screenCenterY, "Level Complete", {fontSize: 72, stroke: "black", strokeThickness: 3}).setOrigin(0.5);
         }
 
         if (this.state === "complete" && !this.levelEndMusic.isPlaying) {

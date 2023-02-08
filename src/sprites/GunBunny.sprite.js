@@ -1,9 +1,12 @@
 import Phaser from 'phaser';
-import { HealthBar } from '../objects/HealthBar';
 
 const JUMP_FRAMES = 40;
-const INITIAL_JUMP_VEL = -100;
+const INITIAL_JUMP_VEL = -50;
 const EXTENDED_JUMP_VEL = -700;
+
+const DASH_SPEED = 800;
+const DASH_FRAMES = 60;
+const DASH_COOLDOWN = 360;
 
 export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
@@ -13,6 +16,12 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         this.scene.physics.add.existing(this);
 
         this.bulletGroup = scene.physics.add.group();
+
+        // this.hitBox = this.scene.add.rectangle(this.getCenter().x, this.getCenter().y, this.width, this.height, "red");
+        // this.scene.physics.add.existing(this.hitBox);
+        // this.hitBox
+        //         .setOrigin(0.5, 0.5)
+        //         .setScale(0.25);
         
         this.sounds = {};
         this.sounds.land = this.scene.sound.add('land', {loop: false, volume: 1});
@@ -68,14 +77,12 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
             repeat: 1
         });
 
-        this.scale *= 2;
-        this.isInvulnerable = false;
-
         this.setCollideWorldBounds(true);
 
         this
             .setActive(true)
             .setOrigin(0.5, 0.5)
+            .setScale(2)
             .setCollideWorldBounds(true)
             .setSize(37, 55)
             .refreshBody();
@@ -97,7 +104,9 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
         this.state = 'standing';
 
-        this.healthBar = new HealthBar(scene, this.body.width, 3);
+        this.hp = 3;
+        this.dashCooldown = 0;
+        this.isInvulnerable = false;
     }
 
     getControllerState() {
@@ -110,24 +119,38 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
             shoot: this.controls.shoot.isDown
         };
         if (this.isGamepadConnected) {
-            control.up          = control.up    || this.scene.input.gamepad.gamepads[0].up;
-            control.down        = control.down  || this.scene.input.gamepad.gamepads[0].down;
-            control.left        = control.left  || this.scene.input.gamepad.gamepads[0].leftStick.x < 0 || this.scene.input.gamepad.gamepads[0].left;
-            control.right       = control.right || this.scene.input.gamepad.gamepads[0].leftStick.x > 0 || this.scene.input.gamepad.gamepads[0].right;;
-            control.jump        = control.jump  || this.scene.input.gamepad.gamepads[0].R1;
-            control.shoot       = control.shoot || this.scene.input.gamepad.gamepads[0].rightStick.x !== 0 || this.scene.input.gamepad.gamepads[0].rightStick.y !== 0;
+            control.up          = control.up      || this.scene.input.gamepad.gamepads[0].up;
+            control.down        = control.down    || this.scene.input.gamepad.gamepads[0].leftStick.y < 0 || this.scene.input.gamepad.gamepads[0].down;
+            control.left        = control.left    || this.scene.input.gamepad.gamepads[0].leftStick.x < 0 || this.scene.input.gamepad.gamepads[0].left;
+            control.right       = control.right   || this.scene.input.gamepad.gamepads[0].leftStick.x > 0 || this.scene.input.gamepad.gamepads[0].right;;
+            control.jump        = control.jump    || this.scene.input.gamepad.gamepads[0].R1;
+            control.slam        = control.slam    || this.scene.input.gamepad.gamepads[0].R2;
+            control.shield      = control.shield  || this.scene.input.gamepad.gamepads[0].L1;
+            control.dash        = control.dash    || this.scene.input.gamepad.gamepads[0].L2;
+            control.shoot       = control.shoot   || this.scene.input.gamepad.gamepads[0].rightStick.x !== 0 || this.scene.input.gamepad.gamepads[0].rightStick.y !== 0;
             control.rightStick  = this.scene.input.gamepad.gamepads[0].rightStick.angle();
         }
 
         return control;
     }
 
-    update(...args) {
+    update() {
         super.update();
 
-        this.healthBar.move(this.x, this.y);
+        // this.hitBox.setPosition(this.getCenter().x, this.getCenter().y);
 
         let control = this.getControllerState();
+
+        if (this.dashFrames > 0) {
+            this.dashFrames--;
+            return;
+        }
+
+        this.body.setAllowGravity(true);
+
+        if (this.dashCooldown > 0) {
+            this.dashCooldown--;
+        }
 
         // If player is hurt, controls are locked.
         if (this.state === 'hurt') {
@@ -146,14 +169,25 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         // Controls
         if (control.right) {
             this.setVelocityX(500);
+            // this.setAccelerationX(1000);
         } else if (control.left) {
             this.setVelocityX(-500);
+            // this.setAccelerationX(-1000);
         } else {
             this.setVelocityX(0);
         }
 
-        // If player is jumping
-        if (control.jump && this.body.blocked.down) {
+        // If player is performing movement actions
+        if (control.dash && this.dashCooldown === 0) {
+            this.dashFrames = DASH_FRAMES;
+            this.dashCooldown = DASH_COOLDOWN;
+            this.setVelocity(this.flipX ? -DASH_SPEED : DASH_SPEED, 0);
+            this.body.setAllowGravity(false);
+        } else if (control.slam && this.state === 'jumping') {
+            this.state = 'stomping';
+            this.setVelocityY(2000);
+        } else if (control.jump && this.body.blocked.down) {
+            this.state = 'jumping';
             this.setVelocityY(INITIAL_JUMP_VEL);
             this.framesLeft = JUMP_FRAMES;
         } else if (control.jump && this.state === 'jumping' && this.framesLeft > 0) {
@@ -190,7 +224,6 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
                 
                 this.bulletGroup.add(megaBusterShot, true);
 
-                // megaBusterShot.scale *= 1;
                 megaBusterShot.body.allowGravity = false;
                 megaBusterShot
                     .setVelocity(x, y)
@@ -211,7 +244,9 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
         // Determine animation to play.
         if (!this.body.blocked.down) {
-            this.state = 'jumping';
+            if (this.state !== 'stomping') {
+                this.state = 'jumping';
+            }
             this.play(this.isShooting ? 'jump-gun' : 'jump', true);
         } else if (this.body.velocity.x !== 0) {
             this.play(this.isShooting ? 'walk-gun' : 'walk', true);
@@ -229,7 +264,7 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
     }
 
     onHit(damageSource) {
-        if (this.state === 'hurt' || this.isInvulnerable) {
+        if (this.state === 'hurt' || this.isInvulnerable || this.dashFrames > 0) {
             return;
         }
 
@@ -238,12 +273,14 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
         this.sounds.hit.play();
 
-        if (this.healthBar.decrease(1)) {
+        this.hp--;
+        this.emit('player_hit');
+
+        if (this.hp <= 0) {
             const screenCenterX = this.scene.cameras.main.worldView.x + this.scene.cameras.main.width / 2;
             const screenCenterY = this.scene.cameras.main.worldView.y + this.scene.cameras.main.height / 2;
             this.scene.add.text(screenCenterX, screenCenterY, "Game Over", {fontSize: 72}).setOrigin(0.5);
             this.scene.level.bgm.stop();
-            this.healthBar.bar.destroy();
             this.disableBody();
             this.setAlpha(0);
             return;

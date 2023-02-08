@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import Game from './scenes/Game.scene';
 import Preload from './scenes/Preload.scene';
 import GameOver from './scenes/GameOver.scene';
+import { UIOverlay } from './scenes/UIOverlay.scene';
 
 const config = {
     type: Phaser.AUTO,
@@ -15,12 +16,12 @@ const config = {
         width: 1920,
         height: 1080
     },
-    scene: [Preload, Game, GameOver],
+    scene: [Preload, Game, GameOver, UIOverlay],
     physics: {
         default: 'arcade',
         arcade: {
             debug: false,
-            gravity: { y: 2500 }
+            gravity: { y: 3000 }
         }
     }
 };

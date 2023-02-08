@@ -96,13 +96,14 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
     }
 
     onHit(weapon) {
-        if (this.state === 'guard') {
-            this.sounds.dink.play();
+        if (weapon) {
             weapon.destroy();
-            return;
         }
 
-        weapon.destroy();
+        if (this.state === 'guard') {
+            this.sounds.dink.play();
+            return;
+        }
 
         this.sounds.enemyHit.play();
 
@@ -111,6 +112,7 @@ export default class Mole extends Phaser.Physics.Arcade.Sprite {
             this.setAlpha(0);
             this.setActive(false);
             this.healthBar.destroy();
+            this.scene.enemyGroup.emit('enemy_destroyed');
         }
     }
 
