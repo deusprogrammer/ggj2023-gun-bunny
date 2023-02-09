@@ -21,9 +21,13 @@ const config = {
         default: 'arcade',
         arcade: {
             debug: false,
-            gravity: { y: 3000 }
+            gravity: { y: 2000 }
         }
-    }
+    },
+    fps: {
+        target: 60,
+        forceSetTimeOut: true
+      }
 };
 
 new Phaser.Game(config);

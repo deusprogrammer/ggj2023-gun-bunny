@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 const JUMP_FRAMES = 40;
 const INITIAL_JUMP_VEL = -50;
-const EXTENDED_JUMP_VEL = -700;
+const EXTENDED_JUMP_VEL = -500;
 
 const DASH_SPEED = 2000;
 const DASH_FRAMES = 15;
@@ -19,11 +19,30 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
 
         this.bulletGroup = scene.physics.add.group();
 
-        // this.hitBox = this.scene.add.rectangle(this.getCenter().x, this.getCenter().y, this.width, this.height, "red");
-        // this.scene.physics.add.existing(this.hitBox);
-        // this.hitBox
-        //         .setOrigin(0.5, 0.5)
-        //         .setScale(0.25);
+        // Create the particle emitter
+        this.emitter = this.scene.add.particles('fire').createEmitter({
+            speed: { min: -50, max: 50 },
+            angle: { min: 145, max: 215 },
+            scale: { start: 0.5, end: 0 },
+            blendMode: 'ADD',
+            lifespan: 300
+        });
+        this.emitter.startFollow(this);
+        
+        // Align the emitter behind the sprite
+        this.emitter.setPosition(this.x - this.width, this.y);
+        this.emitter.setVisible(false);
+
+        // Create the smaller hitbox
+        this.hitbox = this.scene.physics.add.sprite(this.x, this.y, null);
+        this.hitbox.setVisible(false);
+        this.hitbox.body.setCircle(30);
+        this.hitbox.body.debugShowBody = true;
+        
+        // Disable gravity and collision for the hitbox
+        this.hitbox.body.allowGravity = false;
+        this.hitbox.body.setCollideWorldBounds(false);
+        this.hitbox.body.setImmovable(true);
         
         this.sounds = {};
         this.sounds.land = this.scene.sound.add('land', {loop: false, volume: 1});
@@ -139,16 +158,21 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
     update() {
         super.update();
 
+        this.hitbox.x = this.x;
+        this.hitbox.y = this.y;
         // this.hitBox.setPosition(this.getCenter().x, this.getCenter().y);
 
         let control = this.getControllerState();
 
         if (this.dashFrames > 0) {
             this.dashFrames--;
+            this.emitter.setVisible(true);
+            this.emitter.setAlpha(this.dashFrames/DASH_FRAMES);
             this.play('jump');
             return;
         }
 
+        this.emitter.setVisible(false);
         this.body.setAllowGravity(true);
 
         if (this.dashCooldown > 0) {
@@ -280,12 +304,7 @@ export default class GunBunny extends Phaser.Physics.Arcade.Sprite {
         this.emit('player_hit');
 
         if (this.hp <= 0) {
-            const screenCenterX = this.scene.cameras.main.worldView.x + this.scene.cameras.main.width / 2;
-            const screenCenterY = this.scene.cameras.main.worldView.y + this.scene.cameras.main.height / 2;
-            this.scene.add.text(screenCenterX, screenCenterY, "Game Over", {fontSize: 72}).setOrigin(0.5);
-            this.scene.level.bgm.stop();
-            this.disableBody();
-            this.setAlpha(0);
+            this.emit('death');
             return;
         }
         

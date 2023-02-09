@@ -4,6 +4,8 @@ import megaman from '../assets/img/bunny-run.png';
 import megamanJump from '../assets/img/bunny-jump.png';
 import methat from '../assets/img/methat.png';
 
+import fire from '../assets/img/fire.png';
+
 import carrot from '../assets/img/bullet.png';
 import potato from '../assets/img/potato.png';
 
@@ -31,6 +33,8 @@ export default class Preload extends Phaser.Scene {
         this.load.spritesheet('megaman-jump', megamanJump, { frameWidth: 37, frameHeight: 62 });
         this.load.spritesheet('methat', methat, { frameWidth: 24, frameHeight: 24 });
         
+        this.load.image('fire', fire);
+
         this.load.image('shot', carrot);
         this.load.image('enemy_shot', potato);
 
